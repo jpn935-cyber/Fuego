@@ -23,6 +23,7 @@ EPOCHS = 20
 # ============================
 def load_dataset(paths, split_name):
     datasets = []
+    class_names = None
     for path in paths:
         ds_path = Path(path) / split_name
         if not ds_path.exists():
@@ -34,9 +35,12 @@ def load_dataset(paths, split_name):
             label_mode="int"
         )
         datasets.append(ds)
+        if class_names is None:
+            class_names = ds.class_names
     if len(datasets) == 0:
         raise ValueError(f"No datasets found for split '{split_name}'")
-    return datasets[0].concatenate(datasets[1]) if len(datasets) > 1 else datasets[0]
+    merged_ds = datasets[0].concatenate(datasets[1]) if len(datasets) > 1 else datasets[0]
+    return merged_ds, class_names
 
 # ============================
 # DEFINE PATHS
@@ -49,21 +53,20 @@ dataset_paths = [
 # ============================
 # LOAD TRAIN / VAL / TEST
 # ============================
-train_ds = load_dataset(dataset_paths, "train")
-val_ds = load_dataset(dataset_paths, "val")
-test_ds = load_dataset(dataset_paths, "test")
+# Load raw datasets first (keep class_names)
+raw_train_ds, class_names = load_dataset(dataset_paths, "train")
+raw_val_ds, _   = load_dataset(dataset_paths, "val")
+raw_test_ds, _  = load_dataset(dataset_paths, "test")
 
-# Optimize pipeline
+# Capture class names from the first dataset (they should be identical for merged datasets)
+NUM_CLASSES = len(class_names)
+print("Detected classes:", class_names)
+
+# Apply prefetch/shuffle
 AUTOTUNE = tf.data.AUTOTUNE
-train_ds = train_ds.shuffle(1000).prefetch(buffer_size=AUTOTUNE)
-val_ds = val_ds.prefetch(buffer_size=AUTOTUNE)
-test_ds = test_ds.prefetch(buffer_size=AUTOTUNE)
-
-# ============================
-# DEFINE MODEL
-# ============================
-NUM_CLASSES = len(train_ds.class_names)
-print("Detected classes:", train_ds.class_names)
+train_ds = raw_train_ds.shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+val_ds   = raw_val_ds.prefetch(buffer_size=AUTOTUNE)
+test_ds  = raw_test_ds.prefetch(buffer_size=AUTOTUNE)
 
 model = models.Sequential([
     layers.Rescaling(1./255, input_shape=IMG_SIZE + (3,)),
@@ -106,7 +109,6 @@ print(f"\n✅ Test accuracy: {test_acc:.3f}")
 # Get true and predicted labels
 y_true = np.concatenate([y for x, y in test_ds], axis=0)
 y_pred = np.argmax(model.predict(test_ds), axis=1)
-class_names = test_ds.class_names
 
 # Classification report
 report = classification_report(y_true, y_pred, target_names=class_names, digits=3)
