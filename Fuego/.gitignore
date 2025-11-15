@@ -1,0 +1,63 @@
+# ============================================================
+# ESP-IDF / ESP32 Ignore Rules
+# ============================================================
+
+# Build output
+/build/
+/dist/
+/out/
+/components/
+/.devcontainer/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake.api
+
+# Ninja build system
+.ninja_deps
+.ninja_log
+
+# ESP-IDF python env
+venv/
+.env/
+*.pyc
+__pycache__/
+
+# IDF local tools and caches
+idf_env.json
+tools/idf-exe/
+tools/windows/idf-gui-tools/
+tools/windows/idf-monitor/
+
+# SDK configuration backups
+sdkconfig.old
+sdkconfig.defaults
+
+# Logs
+*.log
+
+# Partition table CSV generated files
+partition*.bin
+
+# ============================================================
+# VS Code Files
+# ============================================================
+.vscode/
+*.code-workspace
+
+# ============================================================
+# OS-specific junk
+# ============================================================
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# Optional — ignore firmware binaries if you prefer
+# ============================================================
+*.elf
+*.bin
+*.map
+*.hex
+*.uf2
