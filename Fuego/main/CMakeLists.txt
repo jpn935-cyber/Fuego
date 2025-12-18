@@ -1,5 +1,6 @@
 file(GLOB_RECURSE SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/../src/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../src/*.c"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 
